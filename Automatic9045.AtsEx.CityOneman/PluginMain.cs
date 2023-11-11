@@ -53,19 +53,22 @@ namespace Automatic9045.AtsEx.CityOneman
             DoorSwitchOnSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOn.Index);
             DoorSwitchOffSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOff.Index);
 
-            AssistantText = new AssistantText(new Mackoy.Bvets.AssistantSettings()
+            if (Config.ShowDebugLabel)
             {
-                Scale = 40,
-            });
+                AssistantText = new AssistantText(new Mackoy.Bvets.AssistantSettings()
+                {
+                    Scale = 40,
+                });
 
-            BveHacker.MainForm.AssistantDrawer.Items.Add(AssistantText);
+                BveHacker.MainForm.AssistantDrawer.Items.Add(AssistantText);
+            }
         }
 
         public override void Dispose()
         {
             BveHacker.ScenarioCreated -= OnScenarioCreated;
             BveHacker.MainFormSource.KeyDown -= OnKeyDown;
-            BveHacker.MainForm.AssistantDrawer.Items.Remove(AssistantText);
+            if (!(AssistantText is null)) BveHacker.MainForm.AssistantDrawer.Items.Remove(AssistantText);
         }
 
         private void OnScenarioCreated(ScenarioCreatedEventArgs e)
@@ -179,10 +182,13 @@ namespace Automatic9045.AtsEx.CityOneman
 
             ModePanelValue.Value = ConductorHost.Mode;
 
-            var a = GetText();
-            AssistantText.Text = a.Text;
-            AssistantText.Color = a.Color;
-            AssistantText.BackgroundColor = a.BackgroundColor;
+            if (!(AssistantText is null))
+            {
+                var text = GetText();
+                AssistantText.Text = text.Text;
+                AssistantText.Color = text.Color;
+                AssistantText.BackgroundColor = text.BackgroundColor;
+            }
 
             return new VehiclePluginTickResult();
 

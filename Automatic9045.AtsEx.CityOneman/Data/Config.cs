@@ -9,11 +9,15 @@ using System.Xml.Serialization;
 
 namespace Automatic9045.AtsEx.CityOneman.Data
 {
+    [XmlRoot]
     public class Config
     {
         private static readonly string AssemblyLocation = Assembly.GetExecutingAssembly().Location;
         private static readonly string BaseDirectory = Path.GetDirectoryName(AssemblyLocation);
         private static readonly XmlSerializer Serializer = new XmlSerializer(typeof(Config));
+
+        [XmlAttribute]
+        public bool ShowDebugLabel = false;
 
         public Route Route = new Route();
         public Vehicle Vehicle = new Vehicle();
