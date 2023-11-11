@@ -65,6 +65,7 @@ namespace Automatic9045.AtsEx.CityOneman
         {
             BveHacker.ScenarioCreated -= OnScenarioCreated;
             BveHacker.MainFormSource.KeyDown -= OnKeyDown;
+            BveHacker.MainForm.AssistantDrawer.Items.Remove(AssistantText);
         }
 
         private void OnScenarioCreated(ScenarioCreatedEventArgs e)
