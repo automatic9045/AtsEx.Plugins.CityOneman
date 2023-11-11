@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
 // 制御されます。アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
-[assembly: AssemblyTitle("ワンマンプラグイン")]
-[assembly: AssemblyDescription("車両にワンマン運転機能を追加します。")]
+[assembly: AssemblyTitle("都市型ワンマンプラグイン")]
+[assembly: AssemblyDescription("車両に都市型ワンマン運転機能を追加します。")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("automatic9045")]
 [assembly: AssemblyProduct("AtsEX プラグイン")]
