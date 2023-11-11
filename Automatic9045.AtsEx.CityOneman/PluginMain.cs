@@ -39,7 +39,7 @@ namespace Automatic9045.AtsEx.CityOneman
 
         public PluginMain(PluginBuilder builder) : base(builder)
         {
-            Config = Data.Config.Deserialize("Oneman.Config.xml", false);
+            Config = Data.Config.Deserialize("CityOneman.Config.xml", false);
 
             BveHacker.ScenarioCreated += OnScenarioCreated;
             BveHacker.MainFormSource.KeyDown += OnKeyDown;
