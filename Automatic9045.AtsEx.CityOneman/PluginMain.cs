@@ -22,9 +22,9 @@ namespace Automatic9045.AtsEx.CityOneman
         private readonly Data.Config Config;
         private readonly ConductorHost ConductorHost = null;
 
-        private readonly IAtsPanelValue<ConductorMode> ModePanelValue;
-        private readonly IAtsSound DoorSwitchOnSound;
-        private readonly IAtsSound DoorSwitchOffSound;
+        private readonly IAtsPanelValue<ConductorMode> ModePanelValue = null;
+        private readonly IAtsSound DoorSwitchOnSound = null;
+        private readonly IAtsSound DoorSwitchOffSound = null;
 
         private readonly AssistantText AssistantText;
 
@@ -49,9 +49,9 @@ namespace Automatic9045.AtsEx.CityOneman
             IConductorPatchFactory conductorPatchFactory = Extensions.GetExtension<IConductorPatchFactory>();
             ConductorHost = new ConductorHost(beaconObserver, BveHacker, conductorPatchFactory);
 
-            ModePanelValue = Native.AtsPanelValues.Register<ConductorMode>(Config.Vehicle.AtsPanelValues.Mode.Index, x => (int)x);
-            DoorSwitchOnSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOn.Index);
-            DoorSwitchOffSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOff.Index);
+            if (Config.Vehicle.AtsPanelValues.Mode.Index > 0) ModePanelValue = Native.AtsPanelValues.Register<ConductorMode>(Config.Vehicle.AtsPanelValues.Mode.Index, x => (int)x);
+            if (Config.Vehicle.AtsSounds.DoorSwitchOn.Index > 0) DoorSwitchOnSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOn.Index);
+            if (Config.Vehicle.AtsSounds.DoorSwitchOff.Index > 0) DoorSwitchOffSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOff.Index);
 
             if (Config.ShowDebugLabel)
             {
@@ -85,37 +85,37 @@ namespace Automatic9045.AtsEx.CityOneman
                 if (e.KeyCode == keys.LeftOpen.KeyCode && !IsLeftOpenButtonPushed)
                 {
                     ConductorHost.Conductor.OpenDoors(DoorSide.Left);
-                    DoorSwitchOnSound.Play();
+                    DoorSwitchOnSound?.Play();
                     IsLeftOpenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.LeftClose.KeyCode && !IsLeftCloseButtonPushed)
                 {
                     ConductorHost.Conductor.CloseDoors(DoorSide.Left);
-                    DoorSwitchOnSound.Play();
+                    DoorSwitchOnSound?.Play();
                     IsLeftCloseButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.LeftReopen.KeyCode && !IsLeftReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsLeftReopening = true;
-                    DoorSwitchOnSound.Play();
+                    DoorSwitchOnSound?.Play();
                     IsLeftReopenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RightOpen.KeyCode && !IsRightOpenButtonPushed)
                 {
                     ConductorHost.Conductor.OpenDoors(DoorSide.Right);
-                    DoorSwitchOnSound.Play();
+                    DoorSwitchOnSound?.Play();
                     IsRightOpenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RightClose.KeyCode && !IsRightCloseButtonPushed)
                 {
                     ConductorHost.Conductor.CloseDoors(DoorSide.Right);
-                    DoorSwitchOnSound.Play();
+                    DoorSwitchOnSound?.Play();
                     IsRightCloseButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RightReopen.KeyCode && !IsRightReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsRightReopening = true;
-                    DoorSwitchOnSound.Play();
+                    DoorSwitchOnSound?.Play();
                     IsRightReopenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RequestFixStopPosition.KeyCode)
@@ -139,34 +139,34 @@ namespace Automatic9045.AtsEx.CityOneman
 
                 if (e.KeyCode == keys.LeftOpen.KeyCode && IsLeftOpenButtonPushed)
                 {
-                    DoorSwitchOffSound.Play();
+                    DoorSwitchOffSound?.Play();
                     IsLeftOpenButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.LeftClose.KeyCode && IsLeftCloseButtonPushed)
                 {
-                    DoorSwitchOffSound.Play();
+                    DoorSwitchOffSound?.Play();
                     IsLeftCloseButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.LeftReopen.KeyCode && IsLeftReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsLeftReopening = false;
-                    DoorSwitchOffSound.Play();
+                    DoorSwitchOffSound?.Play();
                     IsLeftReopenButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.RightOpen.KeyCode && IsRightOpenButtonPushed)
                 {
-                    DoorSwitchOffSound.Play();
+                    DoorSwitchOffSound?.Play();
                     IsRightOpenButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.RightClose.KeyCode && IsRightCloseButtonPushed)
                 {
-                    DoorSwitchOffSound.Play();
+                    DoorSwitchOffSound?.Play();
                     IsRightCloseButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.RightReopen.KeyCode && IsRightReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsRightReopening = false;
-                    DoorSwitchOffSound.Play();
+                    DoorSwitchOffSound?.Play();
                     IsRightReopenButtonPushed = false;
                 }
             }
@@ -180,7 +180,7 @@ namespace Automatic9045.AtsEx.CityOneman
                 ConductorValve.Tick(BveHacker.Scenario.LocationManager.SpeedMeterPerSecond);
             }
 
-            ModePanelValue.Value = ConductorHost.Mode;
+            if (!(ModePanelValue is null)) ModePanelValue.Value = ConductorHost.Mode;
 
             if (!(AssistantText is null))
             {
@@ -195,15 +195,15 @@ namespace Automatic9045.AtsEx.CityOneman
 
             (string Text, System.Drawing.Color Color, System.Drawing.Color BackgroundColor) GetText()
             {
-                switch (ModePanelValue.SerializedValue)
+                switch (ConductorHost.Mode)
                 {
-                    case 0:
+                    case ConductorMode.Twoman:
                         return ("ツーマン", System.Drawing.Color.White, System.Drawing.Color.Blue);
-                    case 1:
+                    case ConductorMode.TwomanAtNextStation:
                         return ("次駅からツーマン", System.Drawing.Color.Red, System.Drawing.Color.LightBlue);
-                    case 2:
+                    case ConductorMode.Oneman:
                         return ("ワンマン", System.Drawing.Color.White, System.Drawing.Color.Green);
-                    case 3:
+                    case ConductorMode.OnemanAtNextStation:
                         return ("次駅からワンマン", System.Drawing.Color.Red, System.Drawing.Color.LightGreen);
                     default:
                         throw new NotImplementedException();
