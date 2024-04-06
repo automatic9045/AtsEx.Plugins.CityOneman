@@ -136,6 +136,11 @@ namespace Automatic9045.AtsEx.CityOneman
             Original.Stations.GoTo(stationIndex - 1);
             Original.Doors.SetState(DoorState.Close, DoorState.Close);
 
+            CloseDoors(DoorSide.Left);
+            CloseDoors(DoorSide.Right);
+            DoorSwitches[(int)DoorSide.Left].IsOpened = false;
+            DoorSwitches[(int)DoorSide.Right].IsOpened = false;
+
             Station currentStation = Original.Stations.Count <= stationIndex ? null : Original.Stations[stationIndex] as Station;
             int doorSide = currentStation is null || currentStation.Pass || isDoorClosed ? 0 : currentStation.DoorSide;
             if (doorSide == 0) Original.Stations.GoTo(stationIndex);
