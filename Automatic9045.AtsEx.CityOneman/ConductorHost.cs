@@ -23,6 +23,8 @@ namespace Automatic9045.AtsEx.CityOneman
         private readonly IConductorPatchFactory ConductorPatchFactory;
 
         private readonly HarmonyPatch OnJumpedPatch;
+
+        private bool IsFirstFrame = true;
         private bool IsCalledByMyself = false;
 
         private StationListEx StationListEx;
@@ -112,16 +114,20 @@ namespace Automatic9045.AtsEx.CityOneman
                 StationListEx = new StationListEx(originalConductor.Stations, () => originalConductor.LocationManager.Location);
                 Conductor = new ManualConductor(originalConductor);
                 Patch = ConductorPatchFactory.Patch(Conductor);
-
-                ChangeMode();
             }
         }
 
         public void Tick()
         {
+            if (IsFirstFrame)
+            {
+                IsFirstFrame = false;
+                ChangeMode();
+                return;
+            }
+
             (int index, Station station) = StationListEx.GetStation(1);
-            if (IsReadyToChangeMode && !station.Pass && StationListEx.IsNearestStation(index)
-                && BveHacker.Scenario.Vehicle.Doors.GetSide((DoorSide)station.DoorSideEnum).IsOpen)
+            if (IsReadyToChangeMode && !station.Pass && StationListEx.IsNearestStation(index) && BveHacker.Scenario.Vehicle.Doors.GetSide((DoorSide)station.DoorSideEnum).IsOpen)
             {
                 ChangeMode();
             }
