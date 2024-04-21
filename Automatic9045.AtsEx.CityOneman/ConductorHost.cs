@@ -112,6 +112,8 @@ namespace Automatic9045.AtsEx.CityOneman
                 StationListEx = new StationListEx(originalConductor.Stations, () => originalConductor.LocationManager.Location);
                 Conductor = new ManualConductor(originalConductor);
                 Patch = ConductorPatchFactory.Patch(Conductor);
+
+                ChangeMode();
             }
         }
 
