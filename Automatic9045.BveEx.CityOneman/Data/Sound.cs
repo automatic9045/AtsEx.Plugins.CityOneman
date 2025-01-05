@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Automatic9045.AtsEx.CityOneman.Data
+namespace Automatic9045.BveEx.CityOneman.Data
 {
     [XmlRoot]
-    public class Beacon
+    public class Sound
     {
         [XmlAttribute]
-        public int TypeNumber = -1;
+        public string Path = null;
     }
 }

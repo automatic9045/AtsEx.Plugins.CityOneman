@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 using BveTypes.ClassWrappers;
 
-using AtsEx.Extensions;
-using AtsEx.Extensions.ConductorPatch;
+using BveEx.Extensions;
+using BveEx.Extensions.ConductorPatch;
 
-namespace Automatic9045.AtsEx.CityOneman
+namespace Automatic9045.BveEx.CityOneman
 {
     internal class ManualConductor : ConductorBase
     {
@@ -27,7 +27,7 @@ namespace Automatic9045.AtsEx.CityOneman
         private bool HasStopPositionChecked = false;
         private TimeSpan MinDepartureSoundPlayTime = TimeSpan.Zero;
 
-        private bool IsMoving => 5 / 3.6 <= Math.Abs(Original.LocationManager.SpeedMeterPerSecond);
+        private bool IsMoving => 5 / 3.6 <= Math.Abs(Original.Location.Speed);
 
         public bool IsLeftReopening
         {
@@ -71,7 +71,7 @@ namespace Automatic9045.AtsEx.CityOneman
 
         public ManualConductor(Conductor original) : base(original)
         {
-            StationListEx = new StationListEx(Original.Stations, () => Original.LocationManager.Location);
+            StationListEx = new StationListEx(Original.Stations, () => Original.Location.Location);
         }
 
         public void Sync()
@@ -100,7 +100,7 @@ namespace Automatic9045.AtsEx.CityOneman
             SideDoorSet leftDoors = Original.Doors.GetSide(DoorSide.Left);
             SideDoorSet rightDoors = Original.Doors.GetSide(DoorSide.Right);
 
-            if (nextStation is null || !(Math.Abs(Original.LocationManager.SpeedMeterPerSecond) < 0.01f && StationListEx.IsAtValidPosition(nextStationIndex)))
+            if (nextStation is null || !(Math.Abs(Original.Location.Speed) < 0.01f && StationListEx.IsAtValidPosition(nextStationIndex)))
             {
                 leftDoors.CloseDoors(0);
                 rightDoors.CloseDoors(0);
@@ -109,12 +109,12 @@ namespace Automatic9045.AtsEx.CityOneman
             {
                 switch (nextStation.DoorSide)
                 {
-                    case -1:
+                    case DoorSide.Left:
                         leftDoors.OpenDoors();
                         rightDoors.CloseDoors(0);
                         break;
 
-                    case 1:
+                    case DoorSide.Right:
                         leftDoors.CloseDoors(0);
                         rightDoors.OpenDoors();
                         break;
@@ -133,7 +133,7 @@ namespace Automatic9045.AtsEx.CityOneman
         {
             HasStopPositionChecked = false;
 
-            Original.Stations.GoTo(stationIndex - 1);
+            Original.Stations.GoToByIndex(stationIndex - 1);
             Original.Doors.SetState(DoorState.Close, DoorState.Close);
 
             CloseDoors(DoorSide.Left);
@@ -142,18 +142,18 @@ namespace Automatic9045.AtsEx.CityOneman
             DoorSwitches[(int)DoorSide.Right].IsOpened = false;
 
             Station currentStation = Original.Stations.Count <= stationIndex ? null : Original.Stations[stationIndex] as Station;
-            int doorSide = currentStation is null || currentStation.Pass || isDoorClosed ? 0 : currentStation.DoorSide;
-            if (doorSide == 0) Original.Stations.GoTo(stationIndex);
+            DoorSide? doorSide = currentStation is null || currentStation.Pass || isDoorClosed ? null : currentStation.DoorSide;
+            if (doorSide is null) Original.Stations.GoToByIndex(stationIndex);
 
             return MethodOverrideMode.SkipOriginal;
         }
 
         protected override MethodOverrideMode OnDoorStateChanged()
         {
-            if (Original.Doors.AreAllClosingOrClosed && HasStopPositionChecked)
+            if (Original.Doors.AreAllClosed && HasStopPositionChecked)
             {
                 HasStopPositionChecked = false;
-                Original.Stations.GoTo(Original.Stations.CurrentIndex + 1);
+                Original.Stations.GoToByIndex(Original.Stations.CurrentIndex + 1);
                 DoorClosed(this, EventArgs.Empty);
             }
 
@@ -165,12 +165,12 @@ namespace Automatic9045.AtsEx.CityOneman
             (int nextStationIndex, Station nextStation) = StationListEx.GetStation(1);
             if (!(nextStation is null))
             {
-                if (nextStation.Pass || nextStation.DoorSide == 0)
+                if (nextStation.Pass || nextStation.DoorSide is null)
                 {
-                    double location = Original.LocationManager.Location;
-                    if ((Math.Abs(Original.LocationManager.SpeedMeterPerSecond) < 0.01f && location >= nextStation.MinStopPosition) || location >= nextStation.MaxStopPosition)
+                    double location = Original.Location.Location;
+                    if ((Math.Abs(Original.Location.Speed) < 0.01f && location >= nextStation.MinStopPosition) || location >= nextStation.MaxStopPosition)
                     {
-                        Original.Stations.GoTo(Original.Stations.CurrentIndex + 1);
+                        Original.Stations.GoToByIndex(Original.Stations.CurrentIndex + 1);
                     }
                 }
                 else
@@ -179,12 +179,12 @@ namespace Automatic9045.AtsEx.CityOneman
                     if (MinDepartureSoundPlayTime != TimeSpan.Zero
                         && HasStopPositionChecked
                         && MinDepartureSoundPlayTime <= now
-                        && nextStation.DepertureTime - nextStation.StoppageTime <= now
+                        && nextStation.DepartureTime - nextStation.StoppageTime <= now
                         && 0 < Original.SectionManager.ForwardSectionSpeedLimit)
                     {
                         MinDepartureSoundPlayTime = TimeSpan.Zero;
 
-                        StationListEx.GetStation(1).Station?.DepertureSound?.Play(1, 1, 0);
+                        StationListEx.GetStation(1).Station?.DepartureSound?.Play(1, 1, 0);
                         DepartureSoundPlaying(this, EventArgs.Empty);
                     }
                 }
@@ -199,7 +199,7 @@ namespace Automatic9045.AtsEx.CityOneman
                 {
                     if (!doorSwitch.IsOpened)
                     {
-                        if (!(nextStation is null) && StationListEx.IsNearestStation(nextStationIndex) && nextStation.DoorSide == ToDoorSideNumber(doorSide))
+                        if (!(nextStation is null) && StationListEx.IsNearestStation(nextStationIndex) && nextStation.DoorSide == doorSide)
                         {
                             OpenDoorsAt(nextStation, !HasStopPositionChecked);
                         }
@@ -207,9 +207,9 @@ namespace Automatic9045.AtsEx.CityOneman
                         {
                             (int stationIndex, Station station) = StationListEx.GetStation(0);
 
-                            if (!(station is null) && StationListEx.IsNearestStation(stationIndex) && station.DoorSide == ToDoorSideNumber(doorSide))
+                            if (!(station is null) && StationListEx.IsNearestStation(stationIndex) && station.DoorSide == doorSide)
                             {
-                                Original.Stations.GoTo(stationIndex - 1);
+                                Original.Stations.GoToByIndex(stationIndex - 1);
                                 OpenDoorsAt(station, false);
                             }
                             else
@@ -225,7 +225,7 @@ namespace Automatic9045.AtsEx.CityOneman
                 {
                     if (doorSwitch.IsOpened)
                     {
-                        if (!(nextStation is null) && StationListEx.IsNearestStation(nextStationIndex) && nextStation.DoorSide == ToDoorSideNumber(doorSide))
+                        if (!(nextStation is null) && StationListEx.IsNearestStation(nextStationIndex) && nextStation.DoorSide == doorSide)
                         {
                             sideDoors.CloseDoors(nextStation.StuckInDoorMilliseconds);
                             DoorClosing(this, EventArgs.Empty);
@@ -285,7 +285,5 @@ namespace Automatic9045.AtsEx.CityOneman
             DoorSwitch doorSwitch = DoorSwitches[(int)doorSide];
             doorSwitch.IsSwitchOn = false;
         }
-
-        private int ToDoorSideNumber(DoorSide doorSide) => (int)doorSide * 2 - 1;
     }
 }

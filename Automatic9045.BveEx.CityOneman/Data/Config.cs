@@ -7,19 +7,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Automatic9045.AtsEx.CityOneman.Data
+namespace Automatic9045.BveEx.CityOneman.Data
 {
     [XmlRoot]
     public class Config
     {
         private static readonly string AssemblyLocation = Assembly.GetExecutingAssembly().Location;
-        private static readonly string BaseDirectory = Path.GetDirectoryName(AssemblyLocation);
         private static readonly XmlSerializer Serializer = new XmlSerializer(typeof(Config));
+
+        internal static string BaseDirectory { get; } = Path.GetDirectoryName(AssemblyLocation);
+
 
         [XmlAttribute]
         public bool ShowDebugLabel = false;
 
-        public Route Route = new Route();
+        public Map Map = new Map();
         public Vehicle Vehicle = new Vehicle();
 
         public void Serialize(string fileName)

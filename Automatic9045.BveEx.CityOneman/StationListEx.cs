@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using BveTypes.ClassWrappers;
 
-namespace Automatic9045.AtsEx.CityOneman
+namespace Automatic9045.BveEx.CityOneman
 {
     internal class StationListEx
     {

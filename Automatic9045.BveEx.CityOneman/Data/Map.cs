@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Automatic9045.AtsEx.CityOneman.Data
+namespace Automatic9045.BveEx.CityOneman.Data
 {
-    public class Route
+    public class Map
     {
         public BeaconSet Beacons = new BeaconSet();
     }

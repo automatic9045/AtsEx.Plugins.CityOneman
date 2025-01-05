@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using AtsEx.Extensions.ConductorPatch;
 using BveTypes.ClassWrappers;
 
-namespace Automatic9045.AtsEx.CityOneman
+using BveEx.Extensions.ConductorPatch;
+
+namespace Automatic9045.BveEx.CityOneman
 {
     internal class EmptyConductor : ConductorBase
     {

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using AtsEx.PluginHost;
-using AtsEx.PluginHost.Native;
+using BveEx.Extensions.Native;
 
-namespace Automatic9045.AtsEx.CityOneman
+namespace Automatic9045.BveEx.CityOneman
 {
     internal class BeaconObserver : IDisposable
     {
@@ -32,7 +31,7 @@ namespace Automatic9045.AtsEx.CityOneman
             Native.BeaconPassed -= OnBeaconPassed;
         }
 
-        private void OnBeaconPassed(BeaconPassedEventArgs e)
+        private void OnBeaconPassed(object sender, BeaconPassedEventArgs e)
         {
             if (e.Type != BeaconType) return;
 

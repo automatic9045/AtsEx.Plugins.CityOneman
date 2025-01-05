@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Automatic9045.AtsEx.CityOneman.Data
+namespace Automatic9045.BveEx.CityOneman.Data
 {
     public class KeySet
     {

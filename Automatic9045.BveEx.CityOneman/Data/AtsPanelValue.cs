@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace Automatic9045.AtsEx.CityOneman.Data
+namespace Automatic9045.BveEx.CityOneman.Data
 {
     [XmlRoot]
-    public class AtsSound
+    public class AtsPanelValue
     {
         [XmlAttribute]
         public int Index = -1;

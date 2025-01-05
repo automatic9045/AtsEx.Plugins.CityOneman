@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,26 +8,32 @@ using System.Windows.Forms;
 
 using BveTypes.ClassWrappers;
 
-using AtsEx.PluginHost;
-using AtsEx.PluginHost.Panels.Native;
-using AtsEx.PluginHost.Sound.Native;
-using AtsEx.PluginHost.Plugins;
+using BveEx.PluginHost;
+using BveEx.PluginHost.Plugins;
 
-using AtsEx.Extensions.ConductorPatch;
+using BveEx.Extensions.ConductorPatch;
+using BveEx.Extensions.Native;
+using BveEx.Extensions.SoundFactory;
 
-namespace Automatic9045.AtsEx.CityOneman
+namespace Automatic9045.BveEx.CityOneman
 {
-    [PluginType(PluginType.VehiclePlugin)]
+    [Plugin(PluginType.VehiclePlugin)]
     public class PluginMain : AssemblyPluginBase
     {
         private readonly Data.Config Config;
-        private readonly ConductorHost ConductorHost = null;
+        private readonly INative Native;
+        private readonly BeaconObserver BeaconObserver;
+        private readonly ConductorHost ConductorHost;
 
-        private readonly IAtsPanelValue<ConductorMode> ModePanelValue = null;
-        private readonly IAtsSound DoorSwitchOnSound = null;
-        private readonly IAtsSound DoorSwitchOffSound = null;
+        private readonly Sound DoorSwitchOnSound = null;
+        private readonly Sound DoorSwitchOffSound = null;
 
-        private readonly AssistantText AssistantText;
+        private readonly AssistantText AssistantText = null;
+
+        private ConductorMode ModePanelValue
+        {
+            set { if (0 < Config.Vehicle.AtsPanelValues.Mode.Index) Native.AtsPanelArray[Config.Vehicle.AtsPanelValues.Mode.Index] = (int)value; }
+        }
 
         private ConductorValve ConductorValve = null;
 
@@ -40,18 +47,19 @@ namespace Automatic9045.AtsEx.CityOneman
         public PluginMain(PluginBuilder builder) : base(builder)
         {
             Config = Data.Config.Deserialize("CityOneman.Config.xml", false);
+            Native = Extensions.GetExtension<INative>();
 
             BveHacker.ScenarioCreated += OnScenarioCreated;
             BveHacker.MainFormSource.KeyDown += OnKeyDown;
             BveHacker.MainFormSource.KeyUp += OnKeyUp;
 
-            BeaconObserver beaconObserver = new BeaconObserver(Native, Config.Route.Beacons.ChangeEnabledBeacon.TypeNumber, Config.Vehicle.IsEnabledByDefault);
+            BeaconObserver = new BeaconObserver(Native, Config.Map.Beacons.ChangeEnabledBeacon.TypeNumber, Config.Vehicle.IsEnabledByDefault);
             IConductorPatchFactory conductorPatchFactory = Extensions.GetExtension<IConductorPatchFactory>();
-            ConductorHost = new ConductorHost(beaconObserver, BveHacker, conductorPatchFactory);
+            ConductorHost = new ConductorHost(BeaconObserver, BveHacker, conductorPatchFactory);
 
-            if (Config.Vehicle.AtsPanelValues.Mode.Index > 0) ModePanelValue = Native.AtsPanelValues.Register<ConductorMode>(Config.Vehicle.AtsPanelValues.Mode.Index, x => (int)x);
-            if (Config.Vehicle.AtsSounds.DoorSwitchOn.Index > 0) DoorSwitchOnSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOn.Index);
-            if (Config.Vehicle.AtsSounds.DoorSwitchOff.Index > 0) DoorSwitchOffSound = Native.AtsSounds.Register(Config.Vehicle.AtsSounds.DoorSwitchOff.Index);
+            ISoundFactory soundFactory = Extensions.GetExtension<ISoundFactory>();
+            DoorSwitchOnSound = TryLoadFrom(Config.Vehicle.Sounds.DoorSwitchOn.Path);
+            DoorSwitchOffSound = TryLoadFrom(Config.Vehicle.Sounds.DoorSwitchOff.Path);
 
             if (Config.ShowDebugLabel)
             {
@@ -60,7 +68,16 @@ namespace Automatic9045.AtsEx.CityOneman
                     Scale = 40,
                 });
 
-                BveHacker.MainForm.AssistantDrawer.Items.Add(AssistantText);
+                BveHacker.Assistants.Items.Add(AssistantText);
+            }
+
+
+            Sound TryLoadFrom(string path)
+            {
+                if (string.IsNullOrWhiteSpace(path)) return null;
+
+                Sound sound = soundFactory.LoadFrom(Path.Combine(Data.Config.BaseDirectory, path), 1, Sound.SoundPosition.Cab);
+                return sound;
             }
         }
 
@@ -68,7 +85,13 @@ namespace Automatic9045.AtsEx.CityOneman
         {
             BveHacker.ScenarioCreated -= OnScenarioCreated;
             BveHacker.MainFormSource.KeyDown -= OnKeyDown;
-            if (!(AssistantText is null)) BveHacker.MainForm.AssistantDrawer.Items.Remove(AssistantText);
+
+            BeaconObserver.Dispose();
+
+            DoorSwitchOnSound?.Dispose();
+            DoorSwitchOffSound?.Dispose();
+
+            if (!(AssistantText is null)) BveHacker.Assistants.Items.Remove(AssistantText);
         }
 
         private void OnScenarioCreated(ScenarioCreatedEventArgs e)
@@ -85,37 +108,37 @@ namespace Automatic9045.AtsEx.CityOneman
                 if (e.KeyCode == keys.LeftOpen.KeyCode && !IsLeftOpenButtonPushed)
                 {
                     ConductorHost.Conductor.OpenDoors(DoorSide.Left);
-                    DoorSwitchOnSound?.Play();
+                    DoorSwitchOnSound?.Play(1, 1, 0);
                     IsLeftOpenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.LeftClose.KeyCode && !IsLeftCloseButtonPushed)
                 {
                     ConductorHost.Conductor.CloseDoors(DoorSide.Left);
-                    DoorSwitchOnSound?.Play();
+                    DoorSwitchOnSound?.Play(1, 1, 0);
                     IsLeftCloseButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.LeftReopen.KeyCode && !IsLeftReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsLeftReopening = true;
-                    DoorSwitchOnSound?.Play();
+                    DoorSwitchOnSound?.Play(1, 1, 0);
                     IsLeftReopenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RightOpen.KeyCode && !IsRightOpenButtonPushed)
                 {
                     ConductorHost.Conductor.OpenDoors(DoorSide.Right);
-                    DoorSwitchOnSound?.Play();
+                    DoorSwitchOnSound?.Play(1, 1, 0);
                     IsRightOpenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RightClose.KeyCode && !IsRightCloseButtonPushed)
                 {
                     ConductorHost.Conductor.CloseDoors(DoorSide.Right);
-                    DoorSwitchOnSound?.Play();
+                    DoorSwitchOnSound?.Play(1, 1, 0);
                     IsRightCloseButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RightReopen.KeyCode && !IsRightReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsRightReopening = true;
-                    DoorSwitchOnSound?.Play();
+                    DoorSwitchOnSound?.Play(1, 1, 0);
                     IsRightReopenButtonPushed = true;
                 }
                 else if (e.KeyCode == keys.RequestFixStopPosition.KeyCode)
@@ -139,48 +162,48 @@ namespace Automatic9045.AtsEx.CityOneman
 
                 if (e.KeyCode == keys.LeftOpen.KeyCode && IsLeftOpenButtonPushed)
                 {
-                    DoorSwitchOffSound?.Play();
+                    DoorSwitchOffSound?.Play(1, 1, 0);
                     IsLeftOpenButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.LeftClose.KeyCode && IsLeftCloseButtonPushed)
                 {
-                    DoorSwitchOffSound?.Play();
+                    DoorSwitchOffSound?.Play(1, 1, 0);
                     IsLeftCloseButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.LeftReopen.KeyCode && IsLeftReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsLeftReopening = false;
-                    DoorSwitchOffSound?.Play();
+                    DoorSwitchOffSound?.Play(1, 1, 0);
                     IsLeftReopenButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.RightOpen.KeyCode && IsRightOpenButtonPushed)
                 {
-                    DoorSwitchOffSound?.Play();
+                    DoorSwitchOffSound?.Play(1, 1, 0);
                     IsRightOpenButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.RightClose.KeyCode && IsRightCloseButtonPushed)
                 {
-                    DoorSwitchOffSound?.Play();
+                    DoorSwitchOffSound?.Play(1, 1, 0);
                     IsRightCloseButtonPushed = false;
                 }
                 else if (e.KeyCode == keys.RightReopen.KeyCode && IsRightReopenButtonPushed)
                 {
                     ConductorHost.Conductor.IsRightReopening = false;
-                    DoorSwitchOffSound?.Play();
+                    DoorSwitchOffSound?.Play(1, 1, 0);
                     IsRightReopenButtonPushed = false;
                 }
             }
         }
 
-        public override TickResult Tick(TimeSpan elapsed)
+        public override void Tick(TimeSpan elapsed)
         {
             ConductorHost.Tick();
             if (ConductorHost.IsEnabled)
             {
-                ConductorValve.Tick(BveHacker.Scenario.LocationManager.SpeedMeterPerSecond);
+                ConductorValve.Tick(BveHacker.Scenario.VehicleLocation.Speed);
             }
 
-            if (!(ModePanelValue is null)) ModePanelValue.Value = ConductorHost.Mode;
+            ModePanelValue = ConductorHost.Mode;
 
             if (!(AssistantText is null))
             {
@@ -189,8 +212,6 @@ namespace Automatic9045.AtsEx.CityOneman
                 AssistantText.Color = text.Color;
                 AssistantText.BackgroundColor = text.BackgroundColor;
             }
-
-            return new VehiclePluginTickResult();
 
 
             (string Text, System.Drawing.Color Color, System.Drawing.Color BackgroundColor) GetText()

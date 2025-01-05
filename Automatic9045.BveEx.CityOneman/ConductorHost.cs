@@ -9,12 +9,11 @@ using FastMember;
 using ObjectiveHarmonyPatch;
 using TypeWrapping;
 
-using AtsEx.PluginHost;
-using AtsEx.PluginHost.Native;
+using BveEx.PluginHost;
 
-using AtsEx.Extensions.ConductorPatch;
+using BveEx.Extensions.ConductorPatch;
 
-namespace Automatic9045.AtsEx.CityOneman
+namespace Automatic9045.BveEx.CityOneman
 {
     internal class ConductorHost : IDisposable
     {
@@ -63,7 +62,7 @@ namespace Automatic9045.AtsEx.CityOneman
                 if (IsReadyToChangeMode && BveHacker.IsScenarioCreated)
                 {
                     int index = (int)e.Args[0];
-                    Station station = BveHacker.Scenario.Route.Stations[index] as Station;
+                    Station station = BveHacker.Scenario.Map.Stations[index] as Station;
                     if (!station.Pass && StationListEx.IsNearestStation(index))
                     {
                         ChangeMode();
@@ -111,7 +110,7 @@ namespace Automatic9045.AtsEx.CityOneman
             {
                 Conductor originalConductor = e.Scenario.Vehicle.Conductor;
 
-                StationListEx = new StationListEx(originalConductor.Stations, () => originalConductor.LocationManager.Location);
+                StationListEx = new StationListEx(originalConductor.Stations, () => originalConductor.Location.Location);
                 Conductor = new ManualConductor(originalConductor);
                 Patch = ConductorPatchFactory.Patch(Conductor);
             }
@@ -127,7 +126,7 @@ namespace Automatic9045.AtsEx.CityOneman
             }
 
             (int index, Station station) = StationListEx.GetStation(1);
-            if (IsReadyToChangeMode && !station.Pass && StationListEx.IsNearestStation(index) && BveHacker.Scenario.Vehicle.Doors.GetSide((DoorSide)station.DoorSideEnum).IsOpen)
+            if (IsReadyToChangeMode && !station.Pass && !(station.DoorSide is null) && StationListEx.IsNearestStation(index) && BveHacker.Scenario.Vehicle.Doors.GetSide((DoorSide)station.DoorSide).IsOpen)
             {
                 ChangeMode();
             }
@@ -154,7 +153,7 @@ namespace Automatic9045.AtsEx.CityOneman
                 if (nextStationIndex != -1)
                 {
                     IsCalledByMyself = true;
-                    if (vehicle.Doors.AreAllClosingOrClosed)
+                    if (vehicle.Doors.AreAllClosed)
                     {
                         vehicle.Conductor.OnJumped(nextStationIndex - 1, true);
                     }

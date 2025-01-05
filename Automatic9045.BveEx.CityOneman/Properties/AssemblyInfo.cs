@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("車両に都市型ワンマン運転機能を追加します。")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("automatic9045")]
-[assembly: AssemblyProduct("AtsEX プラグイン")]
+[assembly: AssemblyProduct("BveEX プラグイン")]
 [assembly: AssemblyCopyright("Copyright © 2023 automatic9045")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

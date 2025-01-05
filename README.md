@@ -1,17 +1,21 @@
-# AtsEx.Plugins.CityOneman
-【BVE/AtsEX】都市型ワンマン運転を再現するプラグインです。
+# BveEx.Plugins.CityOneman
+【BVE/BveEX】都市型ワンマン運転を再現するプラグインです。
 
 ## ライセンス
 
-[The MIT License modified with Commons Clause v1.0](LICENSE.txt)
+[PolyForm Noncommercial License 1.0.0](LICENSE.md)
 
 このライセンスにおいて禁止されている方法での利用（商用利用のうち、一部のケースなど）をご希望の場合は、個別にお問い合わせください。
 
 ## 使用ライブラリ等
-### AtsEx.PluginHost およびそれが参照するライブラリ
+### [BveEx.CoreExtensions](https://github.com/automatic9045/BveEX) (PolyForm NonCommercial 1.0.0)
 Copyright (c) 2022 automatic9045
 
-AtsEx.PluginHost が参照するライブラリについては、[AtsEX のリポジトリ](https://github.com/automatic9045/AtsEX) をご参照ください。
+### [BveEx.PluginHost](https://github.com/automatic9045/BveEX) (PolyForm NonCommercial 1.0.0)
+Copyright (c) 2022 automatic9045
 
-### AtsEx.CoreExtensions
+### [Harmony](https://github.com/pardeike/Harmony) (MIT)
+Copyright (c) 2017 Andreas Pardeike
+
+### [ObjectiveHarmonyPatch](https://github.com/automatic9045/ObjectiveHarmonyPatch) (MIT)
 Copyright (c) 2022 automatic9045
